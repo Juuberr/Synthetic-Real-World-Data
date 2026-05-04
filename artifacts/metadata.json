@@ -1,0 +1,326 @@
+{
+    "tables": {
+        "table": {
+            "columns": {
+                "age": {
+                    "sdtype": "numerical"
+                },
+                "fnlwgt": {
+                    "sdtype": "numerical"
+                },
+                "education_num": {
+                    "sdtype": "numerical"
+                },
+                "capital_gain": {
+                    "sdtype": "numerical"
+                },
+                "capital_loss": {
+                    "sdtype": "numerical"
+                },
+                "hours_per_week": {
+                    "sdtype": "numerical"
+                },
+                "workclass_Federal-gov": {
+                    "sdtype": "categorical"
+                },
+                "workclass_Local-gov": {
+                    "sdtype": "categorical"
+                },
+                "workclass_Private": {
+                    "sdtype": "categorical"
+                },
+                "workclass_Self-emp-inc": {
+                    "sdtype": "categorical"
+                },
+                "workclass_Self-emp-not-inc": {
+                    "sdtype": "categorical"
+                },
+                "workclass_State-gov": {
+                    "pii": true,
+                    "sdtype": "administrative_unit"
+                },
+                "workclass_Without-pay": {
+                    "sdtype": "categorical"
+                },
+                "education_10th": {
+                    "sdtype": "categorical"
+                },
+                "education_11th": {
+                    "sdtype": "categorical"
+                },
+                "education_12th": {
+                    "sdtype": "categorical"
+                },
+                "education_1st-4th": {
+                    "sdtype": "categorical"
+                },
+                "education_5th-6th": {
+                    "sdtype": "categorical"
+                },
+                "education_7th-8th": {
+                    "sdtype": "categorical"
+                },
+                "education_9th": {
+                    "sdtype": "categorical"
+                },
+                "education_Assoc-acdm": {
+                    "sdtype": "categorical"
+                },
+                "education_Assoc-voc": {
+                    "sdtype": "categorical"
+                },
+                "education_Bachelors": {
+                    "sdtype": "categorical"
+                },
+                "education_Doctorate": {
+                    "sdtype": "categorical"
+                },
+                "education_HS-grad": {
+                    "sdtype": "categorical"
+                },
+                "education_Masters": {
+                    "sdtype": "categorical"
+                },
+                "education_Preschool": {
+                    "sdtype": "categorical"
+                },
+                "education_Prof-school": {
+                    "sdtype": "categorical"
+                },
+                "education_Some-college": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Divorced": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Married-AF-spouse": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Married-civ-spouse": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Married-spouse-absent": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Never-married": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Separated": {
+                    "sdtype": "categorical"
+                },
+                "marital_status_Widowed": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Adm-clerical": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Armed-Forces": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Craft-repair": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Exec-managerial": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Farming-fishing": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Handlers-cleaners": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Machine-op-inspct": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Other-service": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Priv-house-serv": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Prof-specialty": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Protective-serv": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Sales": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Tech-support": {
+                    "sdtype": "categorical"
+                },
+                "occupation_Transport-moving": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Husband": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Not-in-family": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Other-relative": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Own-child": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Unmarried": {
+                    "sdtype": "categorical"
+                },
+                "relationship_Wife": {
+                    "sdtype": "categorical"
+                },
+                "race_Amer-Indian-Eskimo": {
+                    "sdtype": "categorical"
+                },
+                "race_Asian-Pac-Islander": {
+                    "sdtype": "categorical"
+                },
+                "race_Black": {
+                    "sdtype": "categorical"
+                },
+                "race_Other": {
+                    "sdtype": "categorical"
+                },
+                "race_White": {
+                    "sdtype": "categorical"
+                },
+                "sex_Female": {
+                    "sdtype": "categorical"
+                },
+                "sex_Male": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Cambodia": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Canada": {
+                    "sdtype": "categorical"
+                },
+                "native_country_China": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Columbia": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Cuba": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Dominican-Republic": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Ecuador": {
+                    "sdtype": "categorical"
+                },
+                "native_country_El-Salvador": {
+                    "sdtype": "categorical"
+                },
+                "native_country_England": {
+                    "sdtype": "categorical"
+                },
+                "native_country_France": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Germany": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Greece": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Guatemala": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Haiti": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Holand-Netherlands": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Honduras": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Hong": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Hungary": {
+                    "sdtype": "categorical"
+                },
+                "native_country_India": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Iran": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Ireland": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Italy": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Jamaica": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Japan": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Laos": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Mexico": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Nicaragua": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Outlying-US(Guam-USVI-etc)": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Peru": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Philippines": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Poland": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Portugal": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Puerto-Rico": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Scotland": {
+                    "sdtype": "categorical"
+                },
+                "native_country_South": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Taiwan": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Thailand": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Trinadad&Tobago": {
+                    "sdtype": "categorical"
+                },
+                "native_country_United-States": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Vietnam": {
+                    "sdtype": "categorical"
+                },
+                "native_country_Yugoslavia": {
+                    "sdtype": "categorical"
+                },
+                "income": {
+                    "sdtype": "categorical"
+                }
+            }
+        }
+    },
+    "relationships": [],
+    "METADATA_SPEC_VERSION": "V1"
+}
