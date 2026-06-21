@@ -24,6 +24,13 @@ import warnings
 from datetime import datetime
 warnings.filterwarnings("ignore")
 
+# ── OpenMP-Threads begrenzen, BEVOR torch (via synthcity/sdv) geladen wird ──────
+# Mehrere OpenMP-Laufzeiten (torch + KeOps/MKL) verklemmen sich sonst an einer
+# Fork-Barriere → Deadlock beim TabDDPM-fit (Prozess hängt bei 0% CPU). Diese
+# Variablen MÜSSEN vor dem ersten torch-Import gesetzt werden.
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -41,7 +48,10 @@ from generators import REGISTRY
 # ── CLI ────────────────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
 parser.add_argument("--no-ctgan", action="store_true", help="CTGAN überspringen")
+parser.add_argument("--no-ddpm",  action="store_true", help="TabDDPM überspringen")
 parser.add_argument("--epochs",   type=int, default=50,  help="CTGAN-Epochen")
+parser.add_argument("--ddpm-iters", type=int, default=300,
+                    help="TabDDPM-Trainingsiterationen (default: 300)")
 parser.add_argument("--seeds",    nargs="+", type=int, default=[42],
                     help="Zufalls-Seeds (default: 42)")
 args = parser.parse_args()
@@ -246,15 +256,24 @@ for seed in args.seeds:
     # 3b · GENERATOR-SCHLEIFE  (SMOTE, CTGAN, …)
     # ══════════════════════════════════════════════════════════════════════════
     _section_titles = {
-        "SMOTE": "SMOTE  (interpolierte synthetische Samples)",
-        "CTGAN": f"CTGAN  (SDV · {args.epochs} Epochen)",
+        "SMOTE":   "SMOTE  (interpolierte synthetische Samples)",
+        "CTGAN":   f"CTGAN  (SDV · {args.epochs} Epochen)",
+        "TabDDPM": f"TabDDPM  (synthcity · {args.ddpm_iters} Iterationen)",
     }
+    # Skip-Flags: name -> (aktiv?, Flag-Bezeichnung für die Ausgabe)
+    _skip = {
+        "CTGAN":   (args.no_ctgan, "--no-ctgan"),
+        "TabDDPM": (args.no_ddpm,  "--no-ddpm"),
+    }
+    # Gelernte Generatoren mit Fehlerbehandlung (ein Fehlschlag killt nicht den Lauf)
+    _learned = {"CTGAN", "TabDDPM"}
 
     for i, (name, gen_fn) in enumerate(REGISTRY.items(), 2):
         print("\n" + "─" * 62)
 
-        if name == "CTGAN" and args.no_ctgan:
-            print(f"  [{i}/{_TOTAL_SECTIONS}] CTGAN  → übersprungen (--no-ctgan)")
+        skip_active, skip_flag = _skip.get(name, (False, ""))
+        if skip_active:
+            print(f"  [{i}/{_TOTAL_SECTIONS}] {name}  → übersprungen ({skip_flag})")
             print("─" * 62)
             continue
 
@@ -265,15 +284,17 @@ for seed in args.seeds:
         gen_kwargs = {"le": le}
         if name == "CTGAN":
             gen_kwargs["epochs"] = args.epochs
+        elif name == "TabDDPM":
+            gen_kwargs["n_iter"] = args.ddpm_iters
 
-        # Generator aufrufen (CTGAN mit Fehlerbehandlung wie bisher)
-        if name == "CTGAN":
+        # Generator aufrufen — gelernte Modelle mit Fehlerbehandlung
+        if name in _learned:
             try:
                 X_synth, y_synth = gen_fn(
                     X_raw, y_raw, X_train.index, X_train.columns, seed, **gen_kwargs
                 )
             except Exception as e:
-                print(f"   ⚠  CTGAN fehlgeschlagen: {e}")
+                print(f"   ⚠  {name} fehlgeschlagen: {e}")
                 continue
         else:
             X_synth, y_synth = gen_fn(
@@ -285,6 +306,15 @@ for seed in args.seeds:
             vc_after = pd.Series(y_synth).value_counts()
             print(f"   Trainingsgröße nach SMOTE: {len(X_synth):,}")
             for cls, cnt in vc_after.items():
+                label = le.inverse_transform([cls])[0]
+                print(f"      {label:<8}  {cnt:,}  ({cnt/len(y_synth)*100:.1f} %)")
+
+        # Gelernte Generatoren: Klassenverteilung der synthetischen Daten zeigen
+        # (Kontrolle, dass die Minderheitsklasse nicht verloren geht)
+        if name in _learned:
+            vc_synth = pd.Series(y_synth).value_counts()
+            print(f"   Synthetische Klassenverteilung ({len(y_synth):,} Zeilen):")
+            for cls, cnt in vc_synth.items():
                 label = le.inverse_transform([cls])[0]
                 print(f"      {label:<8}  {cnt:,}  ({cnt/len(y_synth)*100:.1f} %)")
 
@@ -332,7 +362,7 @@ for seed in args.seeds:
     print("\n▶  Erstelle Plots …")
 
     methods = list(results.keys())
-    colors  = ["#4C72B0", "#DD8452", "#55A868"][: len(methods)]
+    colors  = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B3"][: len(methods)]
 
     f1_vals  = [results[m]["utility"]["F1 (macro)"]      for m in methods]
     rec_vals = [results[m]["utility"]["Recall >50K"]     for m in methods]

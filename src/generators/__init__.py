@@ -42,8 +42,10 @@ Hinzufügen eines neuen Generators
 
 from generators.smote import generate as smote_generate
 from generators.ctgan import generate as ctgan_generate
+from generators.ddpm import generate as ddpm_generate
 
 REGISTRY = {
     "SMOTE": smote_generate,
     "CTGAN": ctgan_generate,
+    "TabDDPM": ddpm_generate,
 }
