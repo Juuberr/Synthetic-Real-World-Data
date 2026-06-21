@@ -1,0 +1,20 @@
+name: synth-eval
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - numpy==1.26.4
+    - pandas==2.3.3
+    - scipy==1.17.1
+    - scikit-learn==1.8.0
+    - imbalanced-learn==0.14.1
+    - matplotlib==3.11.0
+    - torch==2.2.2
+    - sdv==1.36.1
+    - synthcity==0.2.12
+    # opacus 1.5.x uses torch.nn.RMSNorm which requires torch >= 2.4.
+    # Pin to 1.4.1 to stay compatible with torch 2.2.2.
+    - opacus==1.4.1

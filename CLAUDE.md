@@ -39,20 +39,40 @@ Three strategies in `src/main.py`:
 ## Running the Pipeline
 
 ```bash
-python3 src/main.py
+# Always use the synth-eval conda environment (Python 3.11):
+/opt/homebrew/Caskroom/miniforge/base/envs/synth-eval/bin/python src/main.py
+
+# Optional flags:
+#   --no-ctgan          skip CTGAN (faster, for dev)
+#   --epochs N          CTGAN epochs (default: 50)
+#   --seeds S [S ...]   one or more random seeds (default: 42)
 ```
 
-Use `python3` (3.10), not `python` (points to conda Python 3.13 which lacks the dependencies).
+**Do NOT use the system `python3`** — it points to Python 3.13, which cannot install
+synthcity (synthcity requires pandas<2, which does not build on Python 3.13).
+Python 3.10 does not exist on this machine; the correct interpreter is Python 3.11
+in the `synth-eval` conda env.
 
 ## Dependencies
 
-`requirements.txt` is empty. Install with:
+Reproduce the exact environment with:
 
 ```bash
-pip install pandas scikit-learn imbalanced-learn "numpy<2" sdv
+conda env create -f environment.yml   # creates the synth-eval env
 ```
 
-`numpy<2` is required — the installed PyTorch (pulled in by SDV) was compiled against NumPy 1.x and crashes with NumPy 2.x.
+Or manually:
+
+```bash
+pip install numpy==1.26.4 pandas==2.3.3 scipy==1.17.1 scikit-learn==1.8.0 \
+            imbalanced-learn==0.14.1 matplotlib==3.11.0 torch==2.2.2 \
+            sdv==1.36.1 synthcity==0.2.12 "opacus==1.4.1"
+```
+
+**Critical pin:** `opacus==1.4.1` — opacus 1.5.x uses `torch.nn.RMSNorm` which
+requires torch ≥ 2.4, but the environment uses torch 2.2.2.
+
+numpy 1.26.4 (< 2) is compatible with torch 2.2.2 and synthcity 0.2.12.
 
 ## Data
 
