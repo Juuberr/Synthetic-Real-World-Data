@@ -13,7 +13,7 @@ Ausführung
 Flags
 -----
     --no-ctgan     CTGAN überspringen (schneller, für Entwicklung)
-    --epochs N     CTGAN-Epochen (default: 50)
+    --epochs N     CTGAN-Epochen (default: 50) 
     --seeds S ...  Zufalls-Seeds (default: 42)
 """
 
@@ -248,6 +248,7 @@ for seed in args.seeds:
     _section_titles = {
         "SMOTE": "SMOTE  (interpolierte synthetische Samples)",
         "CTGAN": f"CTGAN  (SDV · {args.epochs} Epochen)",
+        "GReaT": f"GReaT (Transformer · {args.epochs} Epochen)",
     }
 
     for i, (name, gen_fn) in enumerate(REGISTRY.items(), 2):
@@ -264,6 +265,9 @@ for seed in args.seeds:
         # Modellspezifische kwargs zusammenstellen
         gen_kwargs = {"le": le}
         if name == "CTGAN":
+            gen_kwargs["epochs"] = args.epochs
+
+        if name == "GReaT":
             gen_kwargs["epochs"] = args.epochs
 
         # Generator aufrufen (CTGAN mit Fehlerbehandlung wie bisher)

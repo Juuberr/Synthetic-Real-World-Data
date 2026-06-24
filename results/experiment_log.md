@@ -171,3 +171,34 @@ UCI Adult Income dataset. Each run appends one block below.
 
 ---
 
+## Run — 2026-06-24 00:18:34
+
+**Parameters:** seed=42, epochs=50, CTGAN=yes
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7881 | 0.6478 | 0.0629 | 0.0000 | 66.6% |
+| CTGAN | 0.7371 | 0.5912 | 0.1831 | 0.8787 | 0.1% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6478 (+0.0233), F1 0.7881 (+0.0013). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.6% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**CTGAN**
+- Utility: Recall >50K 0.5912 (-0.0333), F1 0.7371 (-0.0497).
+- Fidelity: **moderate** — KS = 0.1831. Noticeable drift; the generator did not fully capture real distributions.
+- Privacy: **strong** — Median NNDR = 0.8787, 0.1% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+---
+

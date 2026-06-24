@@ -42,8 +42,10 @@ Hinzufügen eines neuen Generators
 
 from generators.smote import generate as smote_generate
 from generators.ctgan import generate as ctgan_generate
+from generators.great import generate as great_generate
 
 REGISTRY = {
     "SMOTE": smote_generate,
     "CTGAN": ctgan_generate,
+    "GReaT": great_generate,
 }
