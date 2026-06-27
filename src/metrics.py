@@ -46,7 +46,13 @@ def privacy_nndr(real_train: np.ndarray, synth: np.ndarray, sample_n=2000, seed=
         idx = rng.choice(len(synth), sample_n, replace=False)
         synth = synth[idx]
 
-    nn = NearestNeighbors(n_neighbors=2, algorithm="auto").fit(real_train)
+    nn = NearestNeighbors(
+        n_neighbors=2,
+        algorithm="brute",
+        metric="euclidean",
+        n_jobs=1
+    ).fit(real_train) 
+    
     dists, _ = nn.kneighbors(synth)          # shape (n, 2)
     eps = 1e-9
     nndr = dists[:, 0] / (dists[:, 1] + eps)
