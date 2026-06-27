@@ -7,8 +7,6 @@ from DataSynthesizer.DataDescriber import DataDescriber
 from DataSynthesizer.DataGenerator import DataGenerator
 
 
-print(">>> PrivBayes Generator geladen")
-
 
 def generate(
     X_raw,

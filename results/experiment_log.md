@@ -171,3 +171,84 @@ UCI Adult Income dataset. Each run appends one block below.
 
 ---
 
+## Run — 2026-06-22 09:12:45
+
+**Parameters:** seed=42, epochs=50, CTGAN=skipped (--no-ctgan)
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 0.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 0.0% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 0.0% quasi-copies. Synthetic points sit directly on top of real training records.
+
+---
+
+## Run — 2026-06-22 09:23:28
+
+**Parameters:** seed=42, epochs=50, CTGAN=skipped (--no-ctgan)
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 0.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 0.0% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 0.0% quasi-copies. Synthetic points sit directly on top of real training records.
+
+---
+
+## Run — 2026-06-22 09:24:02
+
+**Parameters:** seed=42, epochs=50, CTGAN=skipped (--no-ctgan)
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 0.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 0.0% |
+| MST | 0.6824 | 0.4241 | 0.4112 | 0.0000 | 0.0% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 0.0% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**MST**
+- Utility: **below baseline** — Recall >50K 0.4241 (-0.2004), F1 0.6824 (-0.1044). Synthetic data under-represents the minority class.
+- Fidelity: **poor** — KS = 0.4112. Large distributional gap; synthetic numerics differ substantially from real data.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 0.0% quasi-copies. Synthetic points sit directly on top of real training records.
+
+---
+
