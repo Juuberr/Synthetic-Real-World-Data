@@ -252,3 +252,213 @@ UCI Adult Income dataset. Each run appends one block below.
 
 ---
 
+## Run — 2026-06-29 12:04:02
+
+**Parameters:** seed=42, epochs=50, CTGAN=skipped (--no-ctgan)
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 66.6% |
+| MST | 0.6824 | 0.4241 | 0.4112 | 0.8607 | 0.4% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.6% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**MST**
+- Utility: **below baseline** — Recall >50K 0.4241 (-0.2004), F1 0.6824 (-0.1044). Synthetic data under-represents the minority class.
+- Fidelity: **poor** — KS = 0.4112. Large distributional gap; synthetic numerics differ substantially from real data.
+- Privacy: **strong** — Median NNDR = 0.8607, 0.4% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+---
+
+## Run — 2026-06-29 12:25:51
+
+**Parameters:** seed=42, epochs=1, ctgan_train_rows=500, CTGAN=yes
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 66.6% |
+| CTGAN | 0.4985 | 0.1165 | 0.3575 | 0.9091 | 0.1% |
+| MST | 0.4355 | 0.0080 | 0.4002 | 0.8282 | 0.1% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.6% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**CTGAN**
+- Utility: **below baseline** — Recall >50K 0.1165 (-0.5080), F1 0.4985 (-0.2883). Synthetic data under-represents the minority class.
+- Fidelity: **poor** — KS = 0.3575. Large distributional gap; synthetic numerics differ substantially from real data.
+- Privacy: **strong** — Median NNDR = 0.9091, 0.1% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+**MST**
+- Utility: **below baseline** — Recall >50K 0.0080 (-0.6165), F1 0.4355 (-0.3513). Synthetic data under-represents the minority class.
+- Fidelity: **poor** — KS = 0.4002. Large distributional gap; synthetic numerics differ substantially from real data.
+- Privacy: **strong** — Median NNDR = 0.8282, 0.1% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+---
+
+## Run — 2026-06-29 12:40:42
+
+**Parameters:** seed=42, epochs=1, ctgan_train_rows=500, privbayes_epsilon=1.0, privbayes_k=1, CTGAN=yes
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 66.6% |
+| CTGAN | 0.5126 | 0.2410 | 0.3062 | 0.8790 | 0.1% |
+| PrivBayes | 0.5770 | 0.2470 | 0.0811 | 0.7608 | 0.7% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.6% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**CTGAN**
+- Utility: **below baseline** — Recall >50K 0.2410 (-0.3835), F1 0.5126 (-0.2742). Synthetic data under-represents the minority class.
+- Fidelity: **poor** — KS = 0.3062. Large distributional gap; synthetic numerics differ substantially from real data.
+- Privacy: **strong** — Median NNDR = 0.8790, 0.1% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+**PrivBayes**
+- Utility: **below baseline** — Recall >50K 0.2470 (-0.3775), F1 0.5770 (-0.2098). Synthetic data under-represents the minority class.
+- Fidelity: **good** — KS = 0.0811. Minor distributional drift in some numeric columns.
+- Privacy: **moderate** — Median NNDR = 0.7608, 0.7% quasi-copies. Reasonable separation from training data.
+
+---
+
+## Run — 2026-06-29 12:53:19
+
+**Parameters:** preset=fast, seed=42, epochs=1, ctgan_train_rows=500, ctgan_batch_size=500, ctgan_discriminator_steps=1, privbayes_epsilon=1.0, privbayes_k=1, CTGAN=skipped (--no-ctgan)
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7868 | 0.6245 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7880 | 0.6485 | 0.0629 | 0.0000 | 66.6% |
+| PrivBayes | 0.5770 | 0.2470 | 0.0811 | 0.7608 | 0.7% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6485 (+0.0240), F1 0.7880 (+0.0012). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0629. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.6% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**PrivBayes**
+- Utility: **below baseline** — Recall >50K 0.2470 (-0.3775), F1 0.5770 (-0.2098). Synthetic data under-represents the minority class.
+- Fidelity: **good** — KS = 0.0811. Minor distributional drift in some numeric columns.
+- Privacy: **moderate** — Median NNDR = 0.7608, 0.7% quasi-copies. Reasonable separation from training data.
+
+---
+
+## Run — 2026-07-01 10:31:38
+
+**Parameters:** preset=quality, seed=123, epochs=50, ctgan_train_rows=3000, ctgan_batch_size=500, ctgan_discriminator_steps=1, privbayes_epsilon=1.0, privbayes_k=1, CTGAN=yes
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7855 | 0.6232 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7872 | 0.6511 | 0.0630 | 0.0000 | 66.8% |
+| CTGAN | 0.4358 | 0.0067 | 0.2056 | 0.9344 | 0.1% |
+| PrivBayes | 0.6124 | 0.3449 | 0.0836 | 0.7638 | 0.3% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6511 (+0.0279), F1 0.7872 (+0.0017). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0630. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 66.8% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**CTGAN**
+- Utility: **below baseline** — Recall >50K 0.0067 (-0.6165), F1 0.4358 (-0.3497). Synthetic data under-represents the minority class.
+- Fidelity: **moderate** — KS = 0.2056. Noticeable drift; the generator did not fully capture real distributions.
+- Privacy: **strong** — Median NNDR = 0.9344, 0.1% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+**PrivBayes**
+- Utility: **below baseline** — Recall >50K 0.3449 (-0.2783), F1 0.6124 (-0.1731). Synthetic data under-represents the minority class.
+- Fidelity: **good** — KS = 0.0836. Minor distributional drift in some numeric columns.
+- Privacy: **moderate** — Median NNDR = 0.7638, 0.3% quasi-copies. Reasonable separation from training data.
+
+---
+
+## Run — 2026-07-01 10:56:55
+
+**Parameters:** preset=deep, seed=777, epochs=75, rf_n_estimators=600, rf_max_depth=None, rf_min_samples_leaf=1, smote_k_neighbors=7, smote_sampling_strategy=auto, ctgan_train_rows=5000, ctgan_batch_size=500, ctgan_discriminator_steps=2, privbayes_epsilon=1.0, privbayes_k=2, CTGAN=yes
+
+### Results
+
+| Method | F1 (macro) | Recall >50K | Ø KS | Median NNDR | % quasi-copies |
+|---|---|---|---|---|---|
+| Baseline | 0.7924 | 0.6431 | 0.0000 | 0.0000 | 100.0% |
+| SMOTE | 0.7937 | 0.6691 | 0.0619 | 0.0000 | 68.0% |
+| CTGAN | 0.4405 | 0.0120 | 0.2455 | 0.8802 | 0.7% |
+| PrivBayes | 0.6736 | 0.4015 | 0.1166 | 0.8145 | 0.2% |
+
+### Interpretation
+
+**Baseline**
+- Utility: reference point — trained and tested on real data.
+- Fidelity: KS = 0.000 by definition (real vs. real).
+- Privacy: NNDR = 0.000 (self-distance — trivial lower bound, not a real privacy measure).
+
+**SMOTE**
+- Utility: **matches baseline** — Recall >50K 0.6691 (+0.0260), F1 0.7937 (+0.0013). Synthetic data preserves enough signal for downstream use.
+- Fidelity: **good** — KS = 0.0619. Minor distributional drift in some numeric columns.
+- Privacy: **no privacy** — Median NNDR = 0.0000, 68.0% quasi-copies. Synthetic points sit directly on top of real training records.
+
+**CTGAN**
+- Utility: **below baseline** — Recall >50K 0.0120 (-0.6311), F1 0.4405 (-0.3519). Synthetic data under-represents the minority class.
+- Fidelity: **moderate** — KS = 0.2455. Noticeable drift; the generator did not fully capture real distributions.
+- Privacy: **strong** — Median NNDR = 0.8802, 0.7% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+**PrivBayes**
+- Utility: **below baseline** — Recall >50K 0.4015 (-0.2416), F1 0.6736 (-0.1188). Synthetic data under-represents the minority class.
+- Fidelity: **good** — KS = 0.1166. Minor distributional drift in some numeric columns.
+- Privacy: **strong** — Median NNDR = 0.8145, 0.2% quasi-copies. Synthetic points are genuinely distant from real training records.
+
+---
+

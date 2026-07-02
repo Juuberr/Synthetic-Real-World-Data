@@ -42,10 +42,10 @@ Hinzufügen eines neuen Generators
 
 from generators.smote import generate as smote_generate
 from generators.ctgan import generate as ctgan_generate
-from generators.mst import generate as mst_generate
+from generators.privbayes import generate as privbayes_generate
 
 REGISTRY = {
     "SMOTE": smote_generate,
     "CTGAN": ctgan_generate,
-    "MST": mst_generate,
+    "PrivBayes": privbayes_generate,
 }

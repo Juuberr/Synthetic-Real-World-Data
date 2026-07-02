@@ -2,18 +2,24 @@
 =============================================================
   Synthetic Data Demo — Evaluation Script
   Dataset : UCI Adult Income
-  Methods : Baseline (real) | SMOTE | CTGAN (SDV)
+  Methods : Baseline (real) | SMOTE | CTGAN (SDV) | PrivBayes
   Metrics : Utility · Fidelity · Privacy
 =============================================================
 
 Ausführung
 ----------
-    python3 src/main.py [--no-ctgan] [--epochs N] [--seeds S [S ...]]
+    python3 src/main.py [--preset quality] [--no-ctgan] [--epochs N] [--seeds S [S ...]]
 
 Flags
 -----
+    --preset P     fast | quality | deep (default: quality)
     --no-ctgan     CTGAN überspringen (schneller, für Entwicklung)
-    --epochs N     CTGAN-Epochen (default: 50)
+    --epochs N     CTGAN-Epochen (überschreibt Preset)
+    --ctgan-train-rows N
+                   Max. CTGAN-Trainingszeilen (überschreibt Preset)
+    --privbayes-epsilon E
+                   Privacy budget for PrivBayes (überschreibt Preset)
+    --privbayes-k K  Max. Bayesian-network parents per column (überschreibt Preset)
     --seeds S ...  Zufalls-Seeds (default: 42)
 """
 import os
@@ -44,6 +50,93 @@ from sklearn.ensemble import RandomForestClassifier
 
 from metrics import utility_metrics, fidelity_metrics, privacy_nndr
 from generators import REGISTRY
+
+EXPERIMENT_PRESETS = {
+    "fast": {
+        "rf_n_estimators": 100,
+        "rf_max_depth": 16,
+        "rf_min_samples_leaf": 2,
+        "smote_k_neighbors": 3,
+        "smote_sampling_strategy": "auto",
+        "epochs": 1,
+        "ctgan_train_rows": 500,
+        "ctgan_batch_size": 500,
+        "ctgan_generator_dim": (128, 128),
+        "ctgan_discriminator_dim": (128, 128),
+        "ctgan_discriminator_steps": 1,
+        "ctgan_pac": 10,
+        "privbayes_epsilon": 1.0,
+        "privbayes_k": 1,
+        "privbayes_core_cols": [
+            "age",
+            "education_num",
+            "hours_per_week",
+            "education",
+            "marital_status",
+            "occupation",
+            "sex",
+            "income",
+        ],
+    },
+    "quality": {
+        "rf_n_estimators": 300,
+        "rf_max_depth": 28,
+        "rf_min_samples_leaf": 1,
+        "smote_k_neighbors": 5,
+        "smote_sampling_strategy": "auto",
+        "epochs": 20,
+        "ctgan_train_rows": 3000,
+        "ctgan_batch_size": 500,
+        "ctgan_generator_dim": (256, 256),
+        "ctgan_discriminator_dim": (256, 256),
+        "ctgan_discriminator_steps": 1,
+        "ctgan_pac": 10,
+        "privbayes_epsilon": 1.0,
+        "privbayes_k": 1,
+        "privbayes_core_cols": [
+            "age",
+            "education_num",
+            "hours_per_week",
+            "education",
+            "marital_status",
+            "occupation",
+            "relationship",
+            "race",
+            "sex",
+            "income",
+        ],
+    },
+    "deep": {
+        "rf_n_estimators": 600,
+        "rf_max_depth": None,
+        "rf_min_samples_leaf": 1,
+        "smote_k_neighbors": 7,
+        "smote_sampling_strategy": "auto",
+        "epochs": 100,
+        "ctgan_train_rows": 10000,
+        "ctgan_batch_size": 500,
+        "ctgan_generator_dim": (512, 512),
+        "ctgan_discriminator_dim": (512, 512),
+        "ctgan_discriminator_steps": 2,
+        "ctgan_pac": 10,
+        "privbayes_epsilon": 1.0,
+        "privbayes_k": 2,
+        "privbayes_core_cols": [
+            "age",
+            "workclass",
+            "education_num",
+            "hours_per_week",
+            "education",
+            "marital_status",
+            "occupation",
+            "relationship",
+            "race",
+            "sex",
+            "native_country",
+            "income",
+        ],
+    },
+}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 2 · HILFSFUNKTIONEN — LOG-INTERPRETATION
@@ -141,17 +234,65 @@ def interpret_method(name, r, baseline_f1, baseline_rec):
     return "\n".join(lines)
 
 
-def main():
+def make_classifier(args, seed):
+    return RandomForestClassifier(
+        n_estimators=args.rf_n_estimators,
+        max_depth=args.rf_max_depth,
+        min_samples_leaf=args.rf_min_samples_leaf,
+        random_state=seed,
+        n_jobs=-1,
+    )
 
-    print("MAIN WIRD GELADEN")
+
+def main():
 
     # ── CLI ────────────────────────────────────────────────────────────────────────
     parser = argparse.ArgumentParser()
+    parser.add_argument("--rf-n-estimators", type=int, default=None,
+                        help="RandomForest-Baeume fuer Baseline und synthetische Auswertung")
+    parser.add_argument("--rf-max-depth", type=int, default=None,
+                        help="RandomForest max_depth (0 = unbegrenzt)")
+    parser.add_argument("--rf-min-samples-leaf", type=int, default=None,
+                        help="RandomForest min_samples_leaf")
+    parser.add_argument("--smote-k-neighbors", type=int, default=None,
+                        help="SMOTE k_neighbors (ueberschreibt Preset)")
+    parser.add_argument("--smote-sampling-strategy", default=None,
+                        help="SMOTE sampling_strategy (ueberschreibt Preset)")
+    parser.add_argument("--preset", choices=EXPERIMENT_PRESETS.keys(), default="quality",
+                        help="Hyperparameter-Profil: fast, quality oder deep (default: quality)")
     parser.add_argument("--no-ctgan", action="store_true", help="CTGAN überspringen")
-    parser.add_argument("--epochs",   type=int, default=50,  help="CTGAN-Epochen")
+    parser.add_argument("--epochs", type=int, default=None,
+                        help="CTGAN-Epochen (ueberschreibt Preset)")
+    parser.add_argument("--ctgan-train-rows", type=int, default=None,
+                        help="Maximale CTGAN-Trainingszeilen (ueberschreibt Preset)")
+    parser.add_argument("--ctgan-batch-size", type=int, default=None,
+                        help="CTGAN batch_size (ueberschreibt Preset)")
+    parser.add_argument("--ctgan-discriminator-steps", type=int, default=None,
+                        help="CTGAN discriminator_steps (ueberschreibt Preset)")
+    parser.add_argument("--privbayes-epsilon", type=float, default=None,
+                        help="Privacy budget fuer PrivBayes (ueberschreibt Preset)")
+    parser.add_argument("--privbayes-k", type=int, default=None,
+                        help="Maximale Bayesian-Network-Eltern pro Spalte (ueberschreibt Preset)")
     parser.add_argument("--seeds",    nargs="+", type=int, default=[42],
                         help="Zufalls-Seeds (default: 42)")
     args = parser.parse_args()
+    preset = EXPERIMENT_PRESETS[args.preset]
+    for key, value in preset.items():
+        if not hasattr(args, key) or getattr(args, key) is None:
+            setattr(args, key, value)
+    if args.rf_max_depth == 0:
+        args.rf_max_depth = None
+
+    print(
+        f"Hyperparameter-Profil: {args.preset} | "
+        f"RF trees={args.rf_n_estimators}, max_depth={args.rf_max_depth}, "
+        f"min_samples_leaf={args.rf_min_samples_leaf} | "
+        f"SMOTE k={args.smote_k_neighbors}, sampling={args.smote_sampling_strategy} | "
+        f"CTGAN epochs={args.epochs}, train_rows={args.ctgan_train_rows}, "
+        f"batch_size={args.ctgan_batch_size}, discriminator_steps={args.ctgan_discriminator_steps} | "
+        f"PrivBayes epsilon={args.privbayes_epsilon}, k={args.privbayes_k}, "
+        f"core_cols={len(args.privbayes_core_cols)}"
+    )
 
     # ── Run timestamp (shared across plots and log) ────────────────────────────────
     _RUN_DT     = datetime.now()
@@ -236,27 +377,18 @@ def main():
         print(f"  [1/{_TOTAL_SECTIONS}] BASELINE  (echte Trainingsdaten)")
         print("─" * 62)
 
-        clf_base = RandomForestClassifier(n_estimators=100, random_state=seed, n_jobs=-1)
+        clf_base = make_classifier(args, seed)
         clf_base.fit(X_train, y_train)
         y_pred_base = clf_base.predict(X_test)
 
         util_base     = utility_metrics(y_test, y_pred_base)
         fidelity_base = {"Ø KS-Statistik": 0.0}
 
-        """
         privacy_base  = privacy_nndr(X_train.values, X_train.values, seed=seed)
 
         print("   Utility  :", util_base)
         print("   Fidelity :", fidelity_base, "  (Referenz)")
         print("   Privacy  :", privacy_base,  "  (Selbst-Distanz — Untergrenze)")
-        """
-            # Bug Fix da environment nicht funktioniert
-        privacy_base = {
-        "Median NNDR": 0.0,
-        "% quasi-Kopien": 0.0
-        }
-
-
         results = {
             "Baseline": {
                 "utility":  util_base,
@@ -267,17 +399,19 @@ def main():
         
 
         # ══════════════════════════════════════════════════════════════════════════
-        # 3b · GENERATOR-SCHLEIFE  (SMOTE, CTGAN, MST, …)
+        # 3b · GENERATOR-SCHLEIFE  (SMOTE, CTGAN, PrivBayes, …)
         # ══════════════════════════════════════════════════════════════════════════
         _section_titles = {
-            "SMOTE": "SMOTE  (interpolierte synthetische Samples)",
+            "SMOTE": f"SMOTE  (k_neighbors={args.smote_k_neighbors})",
             "CTGAN": f"CTGAN  (SDV · {args.epochs} Epochen)",
-            "MST": "MST (Differential Privacy)",
+            "PrivBayes": (
+                f"PrivBayes  (DataSynthesizer · epsilon={args.privbayes_epsilon}, "
+                f"k={args.privbayes_k})"
+            ),
         }
 
         for i, (name, gen_fn) in enumerate(REGISTRY.items(), 2):
             print("\n" + "─" * 62)
-            print("Aktueller Generator:", name)
 
             if name == "CTGAN" and args.no_ctgan:
                 print(f"  [{i}/{_TOTAL_SECTIONS}] CTGAN  → übersprungen (--no-ctgan)")
@@ -289,8 +423,22 @@ def main():
 
             # Modellspezifische kwargs zusammenstellen
             gen_kwargs = {"le": le}
-            if name == "CTGAN":
+            if name == "SMOTE":
+                gen_kwargs["k_neighbors"] = args.smote_k_neighbors
+                gen_kwargs["sampling_strategy"] = args.smote_sampling_strategy
+            elif name == "CTGAN":
                 gen_kwargs["epochs"] = args.epochs
+                gen_kwargs["max_train_rows"] = args.ctgan_train_rows
+                gen_kwargs["batch_size"] = args.ctgan_batch_size
+                gen_kwargs["generator_dim"] = args.ctgan_generator_dim
+                gen_kwargs["discriminator_dim"] = args.ctgan_discriminator_dim
+                gen_kwargs["discriminator_steps"] = args.ctgan_discriminator_steps
+                gen_kwargs["pac"] = args.ctgan_pac
+            elif name == "PrivBayes":
+                gen_kwargs["numeric_cols"] = NUMERIC_COLS
+                gen_kwargs["epsilon"] = args.privbayes_epsilon
+                gen_kwargs["k"] = args.privbayes_k
+                gen_kwargs["core_cols"] = args.privbayes_core_cols
 
             # Generator aufrufen (CTGAN mit Fehlerbehandlung wie bisher)
             if name == "CTGAN":
@@ -314,7 +462,7 @@ def main():
                     label = le.inverse_transform([cls])[0]
                     print(f"      {label:<8}  {cnt:,}  ({cnt/len(y_synth)*100:.1f} %)")
 
-            clf = RandomForestClassifier(n_estimators=100, random_state=seed, n_jobs=-1)
+            clf = make_classifier(args, seed)
             clf.fit(X_synth, y_synth)
             y_pred = clf.predict(X_test)
 
@@ -322,13 +470,7 @@ def main():
             fidel = fidelity_metrics(X_train_df[num_cols_enc], X_synth[num_cols_enc], num_cols_enc)
 
 
-            #priv  = privacy_nndr(X_train.values, X_synth.values, seed=seed)
-            priv = {
-            "Median NNDR": 0.0,
-            "% quasi-Kopien": 0.0
-            } #Bug Fix wegen environment
-
-
+            priv  = privacy_nndr(X_train.values, X_synth.values, seed=seed)
             print("   Utility  :", util)
             print("   Fidelity :", fidel)
             print("   Privacy  :", priv)
@@ -365,7 +507,7 @@ def main():
         print("\n▶  Erstelle Plots …")
 
         methods = list(results.keys())
-        colors  = ["#4C72B0", "#DD8452", "#55A868"][: len(methods)]
+        colors  = ["#4C72B0", "#DD8452", "#55A868", "#C44E52"][: len(methods)]
 
         f1_vals  = [results[m]["utility"]["F1 (macro)"]      for m in methods]
         rec_vals = [results[m]["utility"]["Recall >50K"]     for m in methods]
@@ -421,7 +563,13 @@ def main():
                     f"{val:.4f}", ha="center", va="bottom", fontsize=9)
 
         _param_str = (
-            f"Run: {TS_DISPLAY}  |  seed={seed}  |  epochs={args.epochs}"
+            f"Run: {TS_DISPLAY}  |  preset={args.preset}  |  seed={seed}  |  epochs={args.epochs}"
+            f"  |  rf_trees={args.rf_n_estimators}"
+            f"  |  smote_k={args.smote_k_neighbors}"
+            f"  |  ctgan_train_rows={args.ctgan_train_rows}"
+            f"  |  ctgan_batch_size={args.ctgan_batch_size}"
+            f"  |  privbayes_epsilon={args.privbayes_epsilon}"
+            f"  |  privbayes_k={args.privbayes_k}"
             + ("  |  CTGAN: skipped" if args.no_ctgan else "  |  CTGAN: yes")
         )
         fig.text(0.5, 0.005, _param_str, ha="center", va="bottom",
@@ -436,7 +584,16 @@ def main():
         # ── SMOTE-Verteilungsplot ──────────────────────────────────────────────────
         if "SMOTE" in results:
             X_smote_ref, y_smote_ref = (
-                REGISTRY["SMOTE"](X_raw, y_raw, X_train.index, X_train.columns, seed, le=le)
+                REGISTRY["SMOTE"](
+                    X_raw,
+                    y_raw,
+                    X_train.index,
+                    X_train.columns,
+                    seed,
+                    le=le,
+                    k_neighbors=args.smote_k_neighbors,
+                    sampling_strategy=args.smote_sampling_strategy,
+                )
             )
 
             fig2, axes = plt.subplots(1, 2, figsize=(9, 4))
@@ -471,7 +628,7 @@ def main():
         LOG_PATH   = os.path.join(SCRIPT_DIR, "..", "results", "experiment_log.md")
         is_new_log = not os.path.exists(LOG_PATH)
 
-        with open(LOG_PATH, "a") as log:
+        with open(LOG_PATH, "a", encoding="utf-8") as log:
             if is_new_log:
                 log.write("# Experiment Log — Synthetic Data Evaluation\n\n")
                 log.write("UCI Adult Income dataset. Each run appends one block below.\n\n")
@@ -482,7 +639,17 @@ def main():
             ctgan_ran = (not args.no_ctgan) and "CTGAN" in results
             log.write(f"## Run — {TS_DISPLAY}\n\n")
             log.write(
-                f"**Parameters:** seed={seed}, epochs={args.epochs}, "
+                f"**Parameters:** preset={args.preset}, seed={seed}, epochs={args.epochs}, "
+                f"rf_n_estimators={args.rf_n_estimators}, "
+                f"rf_max_depth={args.rf_max_depth}, "
+                f"rf_min_samples_leaf={args.rf_min_samples_leaf}, "
+                f"smote_k_neighbors={args.smote_k_neighbors}, "
+                f"smote_sampling_strategy={args.smote_sampling_strategy}, "
+                f"ctgan_train_rows={args.ctgan_train_rows}, "
+                f"ctgan_batch_size={args.ctgan_batch_size}, "
+                f"ctgan_discriminator_steps={args.ctgan_discriminator_steps}, "
+                f"privbayes_epsilon={args.privbayes_epsilon}, "
+                f"privbayes_k={args.privbayes_k}, "
                 f"CTGAN={'yes' if ctgan_ran else 'skipped (--no-ctgan)'}\n\n"
             )
 

@@ -12,6 +12,8 @@ def generate(X_raw, y_raw, train_index, X_train_cols, seed, **kwargs):
     Klassifikator-Input ist — auch wenn seltene Kategorien nur im Test-Set vorkommen.
     """
     le = kwargs["le"]
+    k_neighbors = kwargs.get("k_neighbors", 5)
+    sampling_strategy = kwargs.get("sampling_strategy", "auto")
 
     X_tr = (
         pd.get_dummies(X_raw.loc[train_index])
@@ -19,7 +21,15 @@ def generate(X_raw, y_raw, train_index, X_train_cols, seed, **kwargs):
     )
     y_tr = le.transform(y_raw.loc[train_index].values)
 
-    smote = SMOTE(random_state=seed)
+    print(
+        f"   Erzeuge SMOTE-Samples: k_neighbors={k_neighbors}, "
+        f"sampling_strategy={sampling_strategy}"
+    )
+    smote = SMOTE(
+        random_state=seed,
+        k_neighbors=k_neighbors,
+        sampling_strategy=sampling_strategy,
+    )
     X_smote_arr, y_smote = smote.fit_resample(X_tr, y_tr)
 
     X_synth = pd.DataFrame(X_smote_arr, columns=X_train_cols)
